@@ -1,0 +1,61 @@
+// Define parameters:
+// Global contrast (gamma)
+// red/green/blue contrast
+DEFINE_UI_PARAMS(global_gamma, Global Contrast, DCTLUI_SLIDER_FLOAT, 1.0, 0.0, 3.0, 0.01)
+DEFINE_UI_PARAMS(red_gamma, Red Contrast, DCTLUI_SLIDER_FLOAT, 0.0, -0.5, 0.5, 0.01)
+DEFINE_UI_PARAMS(green_gamma, Green Contrast, DCTLUI_SLIDER_FLOAT, 0.0, -0.5, 0.5, 0.01)
+DEFINE_UI_PARAMS(blue_gamma, Blue Contrast, DCTLUI_SLIDER_FLOAT, 0.0, -0.5, 0.5, 0.01)
+DEFINE_UI_PARAMS(interval, Random Interval, DCTLUI_SLIDER_FLOAT, 0.1, 0.0, 0.5, 0.01)
+DEFINE_UI_PARAMS(mid_gray, Mid Gray, DCTLUI_VALUE_BOX, 0.18)
+// Add a parameter for the random seed chosen by the user.
+DEFINE_UI_PARAMS(user_seed, Random Seed, DCTLUI_SLIDER_INT, 0, 0, 400, 1)
+DEFINE_UI_PARAMS(use_random, Use Random, DCTLUI_CHECK_BOX, 0)
+
+// define the contrast curve
+__DEVICE__ float contrast(float x, float gamma, float mid_gray) {
+    return mid_gray * _powf(x / mid_gray, gamma);
+}
+
+// Define the random number generator function
+typedef unsigned int rand_state;
+
+__DEVICE__ float randu(__PRIVATE__ rand_state *seed) {
+    rand_state x = *seed;
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+    *seed = x;
+    float out = (float)x / (float)(~((rand_state)0));
+    return out;
+}
+
+// Define a random number generator that returns a number between A and B.
+__DEVICE__ float randu_interval(float a, float b, __PRIVATE__ rand_state *seed) {
+    return a + randu(seed) * (b - a);
+}
+
+__DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, float p_R, float p_G, float p_B) {
+
+    // read in the input color
+    float3 output = make_float3(p_R, p_G, p_B);
+
+    // Use the random number generator to get a new gamma for each channel.
+    __PRIVATE__ rand_state *seed = (__PRIVATE__ rand_state *) &user_seed;
+    randu(seed);
+
+    if (use_random) {
+        float global_adjustment = randu_interval(-1.0 * interval, interval, seed);
+        // Apply a contrast adjustment to each of the three channels, with random
+        output.x = contrast(output.x, global_gamma + global_adjustment + red_gamma + randu_interval(-1.0 * interval, interval, seed), mid_gray);
+        output.y = contrast(output.y, global_gamma + global_adjustment + green_gamma + randu_interval(-1.0 * interval, interval, seed), mid_gray);
+        output.z = contrast(output.z, global_gamma + global_adjustment + blue_gamma + randu_interval(-1.0 * interval, interval, seed), mid_gray);
+    } else {
+        // Apply a contrast adjustment to each of the three channels
+        output.x = contrast(output.x, global_gamma + red_gamma, mid_gray);
+        output.y = contrast(output.y, global_gamma + green_gamma, mid_gray);
+        output.z = contrast(output.z, global_gamma + blue_gamma, mid_gray);
+    }
+
+    // Return the result.
+    return output;
+}
