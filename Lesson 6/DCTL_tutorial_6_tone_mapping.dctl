@@ -1,0 +1,55 @@
+// Get necessary parameters for this DCTL:
+// mid_gray_in, mid_gray_out, white_point, black_point
+DEFINE_UI_PARAMS(mid_gray_in, Input Mid Gray, DCTLUI_VALUE_BOX, 0.18)
+DEFINE_UI_PARAMS(mid_gray_out, Output Mid Gray, DCTLUI_VALUE_BOX, 0.18)
+DEFINE_UI_PARAMS(white_point, White Point, DCTLUI_VALUE_BOX, 1.0)
+DEFINE_UI_PARAMS(black_point, Black Point, DCTLUI_VALUE_BOX, 0.0)
+DEFINE_UI_PARAMS(mid_gray_slope, Mid Gray Slope, DCTLUI_VALUE_BOX, 1.0)
+
+typedef struct {
+    float a;
+    float b;
+    float c;
+    float mid_gray_in;
+    float gamma;
+} tone_map_params_t;
+
+__DEVICE__ float tone_map(float x, tone_map_params_t params) {
+    float u = params.mid_gray_in * _powf(x / params.mid_gray_in, params.gamma);
+    return params.a * (u / (u + params.b)) + params.c;
+}
+
+__DEVICE__ float3 tone_map_f3(float3 x, tone_map_params_t params) {
+    float3 out = make_float3(0.0, 0.0, 0.0);
+    out.x = tone_map(x.x, params);
+    out.y = tone_map(x.y, params);
+    out.z = tone_map(x.z, params);
+    return out;
+}
+
+__DEVICE__ tone_map_params_t calculate_params(float black_point, float white_point, float mid_gray_in, float mid_gray_out, float mid_gray_slope) {
+    tone_map_params_t out;
+    // Calculate values of out.a, b, c, mid_gray_in, gamma.
+    out.c = black_point;
+    out.a = white_point - out.c;
+    out.b = (out.a / (mid_gray_out - out.c)) * (1.0 - (mid_gray_out - out.c) / out.a) * mid_gray_in;
+
+    // Compute the necessary value of Gamma, given mid_gray_slope.
+    out.gamma = mid_gray_slope * _powf(mid_gray_in + out.b, 2.0) / (out.a * out.b);
+
+    out.mid_gray_in = mid_gray_in;
+
+    return out;
+}
+
+__DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, float p_R, float p_G, float p_B) {
+    // Declare our params object so we can keep track of our parameters.
+    tone_map_params_t params = calculate_params(black_point, white_point, mid_gray_in, mid_gray_out, mid_gray_slope);
+
+    // Apply the tone mapping function to each of the three channels
+    float3 out = tone_map_f3(make_float3(p_R, p_G, p_B), params);
+
+    // Return the result.
+    return out;
+
+}

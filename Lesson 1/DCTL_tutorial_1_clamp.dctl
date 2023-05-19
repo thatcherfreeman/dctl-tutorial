@@ -1,0 +1,28 @@
+// Identify the min and max code values for the output image.
+DEFINE_UI_PARAMS(min_val, Minimum Value, DCTLUI_SLIDER_FLOAT, 0.0, -2.0, 2.0, 0.01)
+DEFINE_UI_PARAMS(max_val, Maximum Value, DCTLUI_SLIDER_FLOAT, 1.0, -2.0, 2.0, 0.01)
+
+// Allow the user to specify whether they want to clamp min/max/both
+DEFINE_UI_PARAMS(clamp_mode, Clamp Mode, DCTLUI_COMBO_BOX, 0, {CLAMP_BOTH, CLAMP_MIN, CLAMP_MAX}, {Clamp Both, Clamp Min, Clamp Max})
+
+__DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, float p_R, float p_G, float p_B) {
+    // Ensure that the r, g, b inputs do not exceed the max output code value, and do not go below the min input code value.
+    float3 out = make_float3(p_R, p_G, p_B);
+
+    if (clamp_mode == CLAMP_BOTH) {
+        out.x = _clampf(out.x, min_val, max_val);
+        out.y = _clampf(out.y, min_val, max_val);
+        out.z = _clampf(out.z, min_val, max_val);
+    } else if (clamp_mode == CLAMP_MIN) {
+        out.x = _fmaxf(out.x, min_val);
+        out.y = _fmaxf(out.y, min_val);
+        out.z = _fmaxf(out.z, min_val);
+    } else if (clamp_mode == CLAMP_MAX) {
+        out.x = _fminf(out.x, max_val);
+        out.y = _fminf(out.y, max_val);
+        out.z = _fminf(out.z, max_val);
+    }
+
+    // Return the result.
+    return out;
+}

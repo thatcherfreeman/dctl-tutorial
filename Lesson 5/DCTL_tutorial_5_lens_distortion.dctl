@@ -1,0 +1,40 @@
+// Need parameter for k1
+DEFINE_UI_PARAMS(k_1_x, Distortion Coefficient K1 X, DCTLUI_SLIDER_FLOAT, 0.0, -1.0, 1.0, 0.001)
+DEFINE_UI_PARAMS(k_1_y, Distortion Coefficient K1 Y, DCTLUI_SLIDER_FLOAT, 0.0, -1.0, 1.0, 0.001)
+DEFINE_UI_PARAMS(uniform_distortion, Uniform Distortion, DCTLUI_CHECK_BOX, 1)
+
+__DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, __TEXTURE__ p_TexR, __TEXTURE__ p_TexG, __TEXTURE__ p_TexB) {
+    // Transform p_X and p_Y into x_d, y_d, where the center is now 0.0, 0.0, and the height of the image is 1.0 (bottom middle is 0.0, 0.5).
+    float aspect_ratio = (float)p_Width / (float)p_Height;
+    float p_x_scaled = (float)p_X / (float)(p_Width - 1);
+    float p_y_scaled = (float)p_Y / (float)(p_Height - 1);
+    float x_d = (p_x_scaled - 0.5) * aspect_ratio;
+    float y_d = p_y_scaled - 0.5;
+
+    // Compute r_d, distance of the current pixel from the center of the frame.
+    float r_d = _hypotf(x_d, y_d);
+
+    // Compute x_u, y_u
+    if (uniform_distortion) {
+        k_1_y = k_1_x;
+    }
+    float x_u = x_d * (1.0 + k_1_x * _powf(r_d, 2.0));
+    float y_u = y_d * (1.0 + k_1_y * _powf(r_d, 2.0));
+
+    // Transform x_u, y_u into new p_X_u, p_Y_u coordinates where the origin is in the top left
+    float p_x_u_scaled = (x_u / aspect_ratio) + 0.5;
+    float p_y_u_scaled = y_u + 0.5;
+    float p_x_u = p_x_u_scaled * (float)(p_Width - 1);
+    float p_y_u = p_y_u_scaled * (float)(p_Height - 1);
+
+    // Look up the pixel at p_X_u, p_Y_u in each of the three channels
+    float3 out = make_float3(0.0, 0.0, 0.0);
+    out.x = _tex2D(p_TexR, p_x_u, p_y_u);
+    out.y = _tex2D(p_TexG, p_x_u, p_y_u);
+    out.z = _tex2D(p_TexB, p_x_u, p_y_u);
+
+    int bar = takes_int(p_x_u);
+
+    // Return that pixel value.
+    return out;
+}

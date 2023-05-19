@@ -1,0 +1,5 @@
+__DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, float p_R, float p_G, float p_B) {
+    // subtract the current color (r,g,b) from 1.0
+    float3 out = make_float3(1.0 - p_R, 1.0 - p_G, 1.0 - p_B);
+    return out;
+}

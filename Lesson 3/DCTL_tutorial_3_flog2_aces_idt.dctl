@@ -1,0 +1,46 @@
+DEFINE_ACES_PARAM(IS_PARAMETRIC_ACES_TRANSFORM: 0)
+
+__DEVICE__ float flog2_to_linear(float in) {
+    float a = 5.555556;
+    float b = 0.064829;
+    float c = 0.245281;
+    float d = 0.384316;
+    float e = 8.799461;
+    float f = 0.092864;
+    float cut2 = 0.100686685370811;
+    float out;
+    if (in >= cut2) {
+        out = (_powf(10.0, (in - d) / c) / a) - (b / a);
+    } else {
+        out = (in - f) / e;
+    }
+    return out;
+}
+
+__DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, float p_R, float p_G, float p_B) {
+    float3 out = make_float3(p_R, p_G, p_B);
+
+    // Linearize the input rgb value using the flog2 to linear function.
+    out.x = flog2_to_linear(out.x);
+    out.y = flog2_to_linear(out.y);
+    out.z = flog2_to_linear(out.z);
+
+    // Compute the matrix A
+    // Converts from F-Log2 gamut (rec2020) to ap0
+    float color_mat[3][3] = {
+        { 0.679086, 0.157701, 0.163213},
+        { 0.046002, 0.859055, 0.094943},
+        {-0.000574, 0.028468, 0.972106},
+    };
+
+    // Matrix-vector multiply A by rgb_linear
+    float r_d = out.x * color_mat[0][0] + out.y * color_mat[0][1] + out.z * color_mat[0][2];
+    float g_d = out.x * color_mat[1][0] + out.y * color_mat[1][1] + out.z * color_mat[1][2];
+    float b_d = out.x * color_mat[2][0] + out.y * color_mat[2][1] + out.z * color_mat[2][2];
+    out = make_float3(r_d, g_d, b_d);
+
+    // Keep the linear values from before
+
+    // Return the result.
+    return out;
+}
