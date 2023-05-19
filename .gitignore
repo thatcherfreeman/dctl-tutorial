@@ -1,0 +1,13 @@
+*.csv
+__pycache__*
+.vscode*
+*.DS_Store*
+*.drx
+*.aux
+*.out
+*.synctex.gz
+*.log
+*.toc
+.mypy_cache*
+.pytest_cache*
+.coverage
