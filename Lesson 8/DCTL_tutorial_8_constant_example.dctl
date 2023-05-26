@@ -1,0 +1,19 @@
+
+typedef struct {
+    float param1;
+    float param2;
+} params_t;
+
+__CONSTANT__ params_t PARAMS = {0.02, 0.05};
+__CONSTANT__ float PI = 3.1415926535f;
+
+__DEVICE__ float sum_params_times_pi(params_t params) {
+    return (params.param1 + params.param2) * PI;
+}
+
+__DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, float p_R, float p_G, float p_B) {
+    float3 in = make_float3(p_R, p_G, p_B);
+    float sum = sum_params_times_pi(PARAMS);
+    float3 out = make_float3(sum, sum, sum);
+    return out;
+}

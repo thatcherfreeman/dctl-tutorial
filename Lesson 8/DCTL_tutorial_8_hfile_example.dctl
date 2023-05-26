@@ -1,0 +1,19 @@
+#include "matrices.h"
+
+__DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, float p_R, float p_G, float p_B) {
+    float3 in = make_float3(p_R, p_G, p_B);
+    float rec709_to_rec2020[3][3] = {};
+    float rec709_to_xyz [3][3] = {
+        {0.412391, 0.357584, 0.180481},
+        {0.212639, 0.715169, 0.072192},
+        {0.019331, 0.119195, 0.950532},
+    };
+    float xyz_to_rec2020 [3][3] = {
+        { 1.716651, -0.355671, -0.253366},
+        {-0.666684,  1.616481,  0.015769},
+        { 0.017640, -0.042771,  0.942103},
+    };
+    matrix_matrix_multiply(rec709_to_rec2020, xyz_to_rec2020, rec709_to_xyz);
+    float3 out = matrix_vector_multiply(rec709_to_rec2020, in);
+    return out;
+}

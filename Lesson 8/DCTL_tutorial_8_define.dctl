@@ -1,0 +1,15 @@
+#define PI (3.1415926535f)
+#define fill_array(arr, n, value) for (int i = 0; i < n; ++i) {arr[i] = value;}
+
+__DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, float p_R, float p_G, float p_B) {
+    float float_array[5] = {};
+    fill_array(float_array, 5, 2.54);
+
+    int int_array[5] = {};
+    fill_array(int_array, 5, 2);
+
+    float3 float3_array[5] = {};
+    fill_array(float3_array, 5, make_float3(1.5, 2.5, PI));
+
+    return make_float3(float_array[0], int_array[2], float3_array[4].z);
+}
