@@ -1,0 +1,32 @@
+#warning Line 1
+// Above warning allows us to figure out what line number errors take place in the console.
+
+// formatter comments are to avoid cutting the DEFINE_UI_PARAMS line into chunks, which breaks it.
+// clang-format off
+DEFINE_UI_PARAMS(this_is_my_combo_box_variable, Combo Box Variable, DCTLUI_COMBO_BOX, 0, {COMBOBOX1, COMBOBOX2}, {Raised to the power, just return a half})
+DEFINE_UI_PARAMS(power, Power, DCTLUI_SLIDER_FLOAT, 2.0, 0.0, 5.0, 0.01)
+// clang-format on
+
+__DEVICE__ float powf(float base, float exp) {
+    return _copysignf(_powf(_fabs(base), exp), base);
+}
+
+// Modified how "Transform" is described in the below comment.
+// Transforms the input rgb values to something else.
+__DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, float p_R, float p_G, float p_B)
+{
+    float3 output = {p_R, p_G, p_B};
+
+    if (this_is_my_combo_box_variable == COMBOBOX1) {
+        // Raise each input pixel to the specified power.
+        output = make_float3(powf(p_R, power), powf(p_G, power), powf(p_B, power));
+
+    } else if (this_is_my_combo_box_variable == COMBOBOX2) {
+        // Avoiding second assignment with curly braces.
+        output = make_float3(0.5, 0.5, 0.5);
+    }
+
+    // Updated the below comment to not have a lowercase "Return"
+    // Return the resulting color.
+    return output;
+}
