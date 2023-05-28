@@ -1,0 +1,17 @@
+DEFINE_UI_PARAMS(this_is_my_combo_box_variable, Combo Box Variable, DCTLUI_COMBO_BOX, 0, {COMBOBOX1, COMBOBOX2}, {Raised to the power, just return a half})
+DEFINE_UI_PARAMS(power, Power, DCTLUI_SLIDER_FLOAT, 2.0, 0.0, 5.0, 0.01)
+
+// transform function
+__DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, float p_R, float p_G, float p_B)
+{
+    float3 output = {p_R, p_G, p_B};
+    if (this_is_my_combo_box_variable == COMBOBOX1) {
+        // Raise each input pixel to the power of 3.
+        output = make_float3(_powf(p_R, power), _powf(p_G, power), _powf(p_B, power));
+    } else if (this_is_my_combo_box_variable == COMBOBOX2) {
+        output = {0.5, 0.5, 0.5};  // This line won't work on Nvidia.
+    }
+
+    // return output.
+    return output;
+}
