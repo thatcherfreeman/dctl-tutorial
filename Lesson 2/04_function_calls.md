@@ -14,7 +14,13 @@ Let's go through each word there.
 
 * `tone_map` is the name of the function that you'll use whenever you call the function.
 
-* `float x, float a, float b, float c` are the parameters of the function. These are variables that can be used within the function, and indicates that you need to pass four floats into the function when you call it.
+* `float x, float a, float b, float c` are the parameters of the function. These are variables that can be used within the function, and indicates that you need to pass four floats into the function when you call it. If your function has no parameters, you can simply leave the parentheses empty, like
+
+```c
+__DEVICE__ float get_pi() {
+    return 3.14159;
+}
+```
 
 * `{ ... }` You must then wrap the statements within the function with some curly braces, and make sure that you return a `float` type variable by the end of the function.
 
