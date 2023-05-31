@@ -33,8 +33,6 @@ __DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, __TEXTU
     out.y = _tex2D(p_TexG, p_x_u, p_y_u);
     out.z = _tex2D(p_TexB, p_x_u, p_y_u);
 
-    int bar = takes_int(p_x_u);
-
     // Return that pixel value.
     return out;
 }
