@@ -1,5 +1,5 @@
-#warning Line 1
-// Above warning allows us to figure out what line number errors take place in the console.
+#line 2
+// Above statement corrects the line numbers in the logs.
 
 // formatter comments are to avoid cutting the DEFINE_UI_PARAMS line into chunks, which breaks it.
 // clang-format off

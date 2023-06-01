@@ -4,7 +4,7 @@
 2. Don't use `return` or `transform` in comments.
 3. Assignment via Curly braces `{ }`
 4. Using `_powf` for platform cross compatibility
-5. Line number offset hack
+5. Getting the correct error line number in the logs
 6. Putting an `f` after floats? `3.0f`
 7. Github DCTL syntax highlighting
 8. Improving DCTL organization with dummy DCTLs
