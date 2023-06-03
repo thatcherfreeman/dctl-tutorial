@@ -1,0 +1,80 @@
+#line 2
+
+// This file illustrates how to get a variety of interesting error messages in the DCTL compiler.
+
+DEFINE_UI_PARAMS(combo_box, Combo Box, DCTLUI_COMBO_BOX, 0, {OPTION1}, {Option 1})
+
+typedef struct {
+    float thing1;
+    float thing2;
+} thing_t;
+
+__DEVICE__ float some_texture_function(__TEXTURE__ p_tex) {
+    return _tex2D(p_tex, 1, 2);
+}
+
+// If you want to play with fire, the compiler requires that the Transform function says "float3" before it, but you can
+// mess around with the way it's called if you make it return something that break what it's intended to return.
+
+// #define float3 float2
+
+__DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, __TEXTURE__ p_TexR, __TEXTURE__ p_TexG, __TEXTURE__ p_TexB) {
+    float3 out;
+
+    // Shows how the Transform function is called.
+    // int foo = combo_bo;
+
+    // Triggers error revealing make_float3 macro.
+    // out = make_float3(1.0, 2.0, p_TexR);
+
+    // Should reveal expansion of _tex2D call.
+    // float foo = _tex2D(p_X, p_Y, p_TexR);
+
+    // Gets "did you mean 'p_TexR'?" error
+    // float foo = some_texture_function(_TexR);
+
+    // Prints definition of _tex2DVec4 macro (equivalent to _tex2D)
+    // float4 foo = _tex2DVec4(1, 1, p_TexR);
+    // out = make_float3(foo.x, foo.y, foo.z);
+
+    // Gets definition of _tex2DVecN macro
+    // float4 foo = _tex2DVecN(1, 1, p_TexR, 1);
+
+    // Get signature of make_intensity function: __DEVICE__ inline float4 make_intensity(float4 p_Tex, uchar p_Order) {}
+    // float4 foo = make_intensity(0.5, make_float4(1.0, 2.0, 3.0, 4.0));
+
+    // Get definition of _tex2DSamplerVec4 macro
+    // float foo = _tex2DSamplerVec4(0.5, 0.5, 0.5, 0.5);
+
+    // Get definition of _tex2DSamplerVec4 macro
+    // float foo = _tex2DSamplerVecN(0.5, 0.5, 0.5, 0.5, 0.5);
+
+    // Explains what RowSampler is
+    // constexpr sampler RowSampler(coord::pixel, address::clamp_to_edge, filter::nearest);
+    // p_TexR.sample(RowSample, make_float2(0.5, 0.5));
+
+    // Explains different versions of sample function
+    // p_TexR.sample(0.5, make_float2(0.5, 0.5));
+
+    // Doesn't cause an error.
+    // __TEXTURE2D__ foo = p_TexR;
+    // float4 out4 = _tex2DVec4(foo, 0.5, 0.5);
+    // out = make_float3(out4.x, out4.y, out4.z);
+
+    // Gets definition of _log2f macro.
+    // float foo = _log2f(p_TexR);
+
+    // Interesting WRITE_REAL errors if the #define float3 float2 is added above the Transform function.
+    // return make_float3(gIdx, gIdx, gIdx);
+
+    // Shows you the APPLY_LUT macro
+    // out = APPLY_LUT(0.5, 0.5, 0.5, 0.5);
+
+    // Shows you all Transform arguments when there's a LUT defined.
+    // out = APPLY_LUT(0.5, 0.5, 0.5, some_lut_va);
+
+    out = make_float3(1.0, 2.0, 3.0);
+    return out;
+}
+
+// DEFINE_LUT(some_lut_var, ../Film Looks/Rec709 Kodak 2383 D65.cube)
