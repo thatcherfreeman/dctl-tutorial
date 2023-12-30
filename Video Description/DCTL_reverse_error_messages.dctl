@@ -1,4 +1,5 @@
 #line 2
+#warning "should occur on line 2."
 
 // This file illustrates how to get a variety of interesting error messages in the DCTL compiler.
 
@@ -72,6 +73,11 @@ __DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, __TEXTU
 
     // Shows you all Transform arguments when there's a LUT defined.
     // out = APPLY_LUT(0.5, 0.5, 0.5, some_lut_va);
+
+    // Print out when an enum is defined.
+    // if (combo_box == OPTION) {
+    //     out = make_float3(1.0, 3.0, 2.0);
+    // }
 
     out = make_float3(1.0, 2.0, 3.0);
     return out;
