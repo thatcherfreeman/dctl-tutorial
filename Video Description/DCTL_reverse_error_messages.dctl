@@ -79,6 +79,10 @@ __DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, __TEXTU
     //     out = make_float3(1.0, 3.0, 2.0);
     // }
 
+    // /System/Library/PrivateFrameworks/GPUCompiler.framework/Versions/32023/Libraries/lib/clang/32023.116/include/metal/metal_integer:57:17: note: 'madsat' declared here
+    // METAL_FUNC char madsat(char x, char y, char z)
+    // float2 foo = make_float2(0.3, mid_sat);
+
     out = make_float3(1.0, 2.0, 3.0);
     return out;
 }
