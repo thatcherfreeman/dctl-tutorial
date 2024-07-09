@@ -72,3 +72,23 @@ __TEXTURE__ curr_chan = p_TexR;
 float foo = do_something(curr_chan, p_X, p_Y);
 ```
 
+## Don't declare variables in a Switch Case block.
+As title, don't do this:
+```c
+// Bad
+switch (condition) {
+    case 1:
+        float foo = x;
+        return foo;
+}
+```
+However, if variables are declared in advance, prior to the switch statement, things seem to work okay
+```c
+// Okay
+float foo;
+switch (condition) {
+    case 1:
+        foo = x;
+        return foo;
+}
+```
