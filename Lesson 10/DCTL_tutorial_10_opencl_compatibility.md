@@ -9,6 +9,10 @@ __DEVICE__ float mixf(float x, float y, float a) {
     return x * (1.0 - a) + y * a;
 }
 
+__DEVICE__ float2 mixf2(float2 x, float2 y, float a) {
+    return make_float2(mixf(x.x, y.x, a), mixf(x.y, y.y, a));
+}
+
 __DEVICE__ float3 mixf3(float3 x, float3 y, float a) {
     return make_float3(mixf(x.x, y.x, a), mixf(x.y, y.y, a), mixf(x.z, y.z, a));
 }
@@ -18,8 +22,16 @@ __DEVICE__ float4 mixf4(float4 x, float4 y, float a) {
 }
 ```
 
-## `_fmaxf()` is unsafe with constant numbers
-If you have code like `_fmaxf(x_float, 0.0)`, the OpenCL compiler chooses between several different versions of `_fmaxf` that have different types for each argument, IE `fmaxf(float x, float y)`, `fmaxf(double x, double y)`. It interprets `0.0` as a double, so when `x` is a single precision float variable and `y` is a double precision float, it gets confused and can't resolve a single version of `fmaxf` to use.
+## `_fmaxf()` and some other functions is unsafe with double constant numbers
+If you have code like `_fmaxf(x_float, 0.0)`, the OpenCL compiler chooses between several different versions of `_fmaxf` that have different types for each argument, IE `fmaxf(float x, float y)`, `fmaxf(double x, double y)`. It interprets `0.0` as a double, so when `x` is a single precision float variable and `y` is a double precision float, it gets confused and can't resolve a single version of `fmaxf` to use. I think this only occurs for built-in math functions that have multiple arguments.
+
+This is true with several of the built in functions. Below is a non-exhaustive list:
+ * `_powf()`
+ * `_clampf()`
+ * `_fmaxf()`
+ * `_fminf()`
+ * `_mix()`
+ * `_fmod()`
 
 #### Bad:
 ```c
@@ -119,4 +131,17 @@ switch (condition) {
         foo = x;
         return foo;
 }
+```
+
+## Don't do arithmetic operations between float2, float3 and a double
+Don't do this:
+```c
+float2 foo = make_float2(3.0, 4.0);
+(foo + 1.0) * 0.5;
+```
+
+Do this:
+```c
+float2 foo = make_float2(3.0, 4.0);
+(foo + 1.0f) * 0.5f;
 ```
