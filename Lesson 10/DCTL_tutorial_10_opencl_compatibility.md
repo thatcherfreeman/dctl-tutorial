@@ -18,6 +18,34 @@ __DEVICE__ float4 mixf4(float4 x, float4 y, float a) {
 }
 ```
 
+## `_fmaxf()` is unsafe with constant numbers
+If you have code like `_fmaxf(x_float, 0.0)`, the OpenCL compiler chooses between several different versions of `_fmaxf` that have different types for each argument, IE `fmaxf(float x, float y)`, `fmaxf(double x, double y)`. It interprets `0.0` as a double, so when `x` is a single precision float variable and `y` is a double precision float, it gets confused and can't resolve a single version of `fmaxf` to use.
+
+#### Bad:
+```c
+float x = p_R;
+_fmaxf(x, 1.0);
+```
+
+#### Good:
+```c
+// option 1
+float x = p_R;
+float y = 1.0; // implicitly casts the double 1.0 to a float.
+_fmaxf(x, y);
+
+// option 2
+float x = p_R;
+_fmaxf(x, 1.0f); // include an f so that it's deliberately a float
+
+// option 3
+__DEVICE__ float maxf(float x, float y) {
+    return _fmaxf(x, y);
+}
+float x = p_R;
+maxf(x, 1.0);
+```
+
 ## Putting `enum` everywhere
 Suppose you have some `enum` like:
 
