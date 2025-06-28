@@ -145,3 +145,12 @@ Do this:
 float2 foo = make_float2(3.0, 4.0);
 (foo + 1.0f) * 0.5f;
 ```
+
+## Don't override existing OpenCL functions
+Don't do this:
+```c
+__DEVICE__ float abs(float x) {
+    return x > 0 ? x : x * -1.0f;
+}
+```
+Because `abs` is already defined in opencl. Instead, call the function something like `absf()`.
