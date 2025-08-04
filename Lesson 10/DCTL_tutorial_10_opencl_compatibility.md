@@ -156,3 +156,16 @@ __DEVICE__ float abs(float x) {
 Because `abs` is already defined in opencl. Instead, call the function something like `absf()`.
 
 The list of existing functions is shown [here](https://registry.khronos.org/OpenCL/specs/3.0-unified/html/OpenCL_C.html)
+
+## Don't use a float as a boolean expression
+The below fails on some AMD systems.
+```c
+float some_float = ...;
+float result = some_float ? 0.0f : 1.0f;
+```
+Instead, do:
+```c
+float some_float = ...;
+float result = (some_float > 0.0f) ? 0.0f : 1.0f;
+```
+Perhaps, even remove the ternary operator and just use a normal if/else block instead.
